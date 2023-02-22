@@ -115,7 +115,7 @@ def refresh_grids():
     console.print(Columns([table1, table2]))
 
     # Faire une requête HTTP pour obtenir l'objet JSON
-    response = requests.get('http://localhost/v1/programme/infos/8999c3c008742c9c0b672d3ca0c7830d9035da4a/264f2a34bbccf874f6dc3c67cc87d6224c4af03e')
+    response = requests.get('http://localhost/v1/programme/infos/:id/:secret_id')
     programme_data = response.json()
     programme_tab = generate_tables(programme_data)
     console.print(programme_tab)

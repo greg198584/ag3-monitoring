@@ -171,8 +171,8 @@ def display_program_data(program_data, table_title):
         # Créer une colonne pour afficher la barre de progression
         progress_column = Columns([f"[{style}]Cellule {cell_id}[/{style}]", progress], expand=True)
         # Ajouter une ligne à la table pour la cellule
-        status_str = "[red]Détruite[/red]" if cell_info['status'] == False else "[green]Active[/green]"
-        table.add_row(progress_column, status_str, "", "")
+        status_str = "[red]Dommage[/red]" if cell_info['status'] == False else "[green]OK[/green]"
+        table.add_row(progress_column, status_str, program_data['name'], str(program_data['level']))
 
     # Afficher la table dans la console Rich
     console.print(table)

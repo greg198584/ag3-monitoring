@@ -5,6 +5,8 @@ from rich.table import Table
 from rich.columns import Columns
 from rich import box
 import schedule
+import argparse
+from functools import partial
 
 def generate_programme_table(data):
     # Tableau pour afficher les informations du programme
@@ -93,38 +95,136 @@ def generate_grid(zones):
         table.add_row(*row_data)
     return table
 
-def refresh_grids():
+def generate_zone_data_table(program_data):
+    table = Table(show_header=True, header_style="bold magenta")
+    table.box = box.SIMPLE_HEAVY
+    table.add_column("Zone Data", justify="center")
+    table.add_row("ID", str(program_data["id"]))
+    table.add_row("Actif", "[green]YES[/green]" if program_data["actif"] else "[red]NO[/red]")
+    cellule_table = Table(show_header=True, header_style="bold magenta")
+    cellule_table.box = box.SIMPLE_HEAVY
+    cellule_table.add_column("Cellule ID")
+    cellule_table.add_column("Valeur")
+    cellule_table.add_column("Énergie")
+    cellule_table.add_column("Status")
+    cellule_table.add_column("Destroy")
+    cellule_table.add_column("Rebuild")
+    cellule_table.add_column("Capture")
+    cellule_table.add_column("Trapped")
+    for cellule in program_data["cellule"]:
+        cellule_table.add_row(str(cellule["id"]),
+                              str(cellule["valeur"]),
+                              str(cellule["energy"]),
+                              "[green]YES[/green]" if cellule["status"] else "[red]NO[/red]",
+                              "[green]YES[/green]" if cellule["destroy"] else "[red]NO[/red]",
+                              "[green]YES[/green]" if cellule["rebuild"] else "[red]NO[/red]",
+                              "[green]YES[/green]" if cellule["capture"] else "[red]NO[/red]",
+                              "[green]YES[/green]" if cellule["trapped"] else "[red]NO[/red]")
+    table.add_row("Cellules", cellule_table)
+    return table
+
+def refresh_grids(host_a, host_b, current_host, id, secret_id):
     console = Console(style="default")
     # Faire une requête HTTP pour obtenir l'objet JSON pour la première grille
-    response1 = requests.get('http://localhost/v1/grid')
+    status_a_url = 'http://:host/v1/grid'
+    status_a_url = status_a_url.replace(':host', host_a) if host_a else status_a_url
+    response1 = requests.get(status_a_url)
     data1 = response1.json()
 
     # Générer la première grille
-    table1 = generate_grid(data1)
+    g1 = generate_grid(data1)
 
     # Faire une requête HTTP pour obtenir l'objet JSON pour la deuxième grille
-    response2 = requests.get('http://localhost/v1/grid')
+    status_b_url = 'http://:host/v1/grid'
+    status_b_url = status_b_url.replace(':host', host_b) if host_b else status_b_url
+    response2 = requests.get(status_b_url)
     data2 = response2.json()
 
     # Générer la deuxième grille
-    table2 = generate_grid(data2)
+    g2 = generate_grid(data2)
 
     console.clear()  # Effacer l'écran
 
-    # Afficher les deux grilles côte à côte
-    console.print(Columns([table1, table2]))
+    # Scan zone
+    scan_url = 'http://:host/v1/programme/scan/:id/:secret_id'
+    scan_url = scan_url.replace(':host', current_host) if current_host else scan_url
+    scan_url = scan_url.replace(':id', id) if id else scan_url
+    scan_url = scan_url.replace(':secret_id', secret_id) if secret_id else scan_url
+    response = requests.get(scan_url)
+    program_data = response.json()
+
+    # Générer la table des données du programme
+    zone_data = generate_zone_data_table(program_data)
+
+    # Afficher les deux grilles côte à côte + zone
+    console.print(Columns([g1, g2, zone_data]))
 
     # Faire une requête HTTP pour obtenir l'objet JSON
-    response = requests.get('http://localhost/v1/programme/infos/:id/:secret_id')
+    prog_url = 'http://:host/v1/programme/infos/:id/:secret_id'
+    prog_url = prog_url.replace(':host', current_host) if current_host else prog_url
+    prog_url = prog_url.replace(':id', id) if id else prog_url
+    prog_url = prog_url.replace(':secret_id', secret_id) if secret_id else prog_url
+
+    response = requests.get(prog_url)
     programme_data = response.json()
     programme_tab = generate_tables(programme_data)
     console.print(programme_tab)
 
+def refresh_grids_wrapper(host_a, host_b, current_host, id, secret_id):
+    return partial(refresh_grids, host_a, host_b, current_host, id, secret_id)
 
+def main():
+    parser = argparse.ArgumentParser(description='AG-3 monitoring')
+    parser.add_argument('--id', type=str, help='ID du programme')
+    parser.add_argument('--secret-id', type=str, help='Secret ID')
+    parser.add_argument('--host_a', type=str, help='Host')
+    parser.add_argument('--host_b', type=str, help='Port')
+    parser.add_argument('--current_host', type=str, help='Current host')
 
-schedule.every(5).seconds.do(refresh_grids)
+    args = parser.parse_args()
 
-while True:
-    schedule.run_pending()
-    # Attendre 5 secondes avant de mettre à jour les données
-    time.sleep(5)
+    if args.id:
+        print(f"L'ID du programme est {args.id}")
+    else:
+        print("L'ID du programme n'a pas été renseigné")
+        return
+
+    if args.secret_id:
+        print(f"Le Secret ID est {args.secret_id}")
+    else:
+        print("Le Secret ID n'a pas été renseigné")
+        return
+
+    if args.host_a:
+        print(f"host: {args.host_a}")
+    else:
+        print("host a non renseigné")
+        return
+
+    if args.host_b:
+        print(f"host: {args.host_b}")
+    else:
+        print("host b non renseigné")
+        return
+
+    if args.current_host:
+        print(f"current host: {args.current_host}")
+    else:
+        print("current host non renseigné")
+        return
+
+    id = args.id
+    secret_id = args.secret_id
+    host_a = args.host_a
+    host_b = args.host_b
+    current_host = args.current_host
+    refresh_grids_partial = refresh_grids_wrapper(host_a, host_b, current_host, id, secret_id)
+    schedule.every(5).seconds.do(refresh_grids_partial)
+
+    while True:
+        schedule.run_pending()
+        # Attendre 5 secondes avant de mettre à jour les données
+        time.sleep(5)
+
+if __name__ == '__main__':
+    main()

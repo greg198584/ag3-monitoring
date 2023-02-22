@@ -56,6 +56,7 @@ def generate_navigation_table(data):
     navigation_table.box = box.SIMPLE_HEAVY
     navigation_table.add_column("Navigation")
 
+    navigation_table.add_row("Team", "[cyan]BLUE[/cyan]" if data["blue_team"] else "[red]RED[/red]")
     navigation_table.add_row("En cours", "[green]YES[/green]" if data["navigation"] else "[green]NO[/green]")
     navigation_table.add_row("Temps d'arrivée", data["navigation_time_arrived"])
 
@@ -72,20 +73,27 @@ def generate_grid(zones):
     table = Table(show_header=True, header_style="bold magenta")
     table.box = box.SIMPLE_HEAVY
     taille = zones["taille"]
+    grid_name = zones["ag-3-team"]
     zones = zones["zones"]
 
+    table.add_column("grid: " + grid_name, justify="center")
     # Ajouter les colonnes pour chaque zone
     for zone_id in range(taille):
         table.add_column(str(zone_id), justify="center")
 
+    # row_data = []
+    # for i in range(taille):
+    #     row_data.append("[cyan]" + str(i) + "[/cyan]")
+    # table.add_row(*row_data)
     # Ajouter les lignes pour chaque secteur
     for secteur_id in range(taille):
         row_data = []
+        row_data.append("[cyan]" + str(secteur_id) + "[/cyan]")
         for zone_id in range(taille):
             zone = next((z for z in zones if z["secteur_id"] == secteur_id and z["zone_id"] == zone_id), None)
             if zone is not None:
                 if not zone["status"]:
-                    row_data.append("[red]N[/red]")
+                    row_data.append("[red].[/red]")
                 elif zone["actif"]:
                     row_data.append("[green]X[/green]")
                 else:

@@ -2,7 +2,6 @@ import requests
 import time
 from rich.console import Console
 from rich.table import Table
-from rich.columns import Columns
 from rich import box
 import schedule
 import argparse

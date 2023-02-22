@@ -1,6 +1,10 @@
 # ag3-monitoring
 monitoring AG-3
 
+use with client-ag3
+
+https://github.com/greg198584/client-ag3
+
 ## Usage exemple
 
 ```bash

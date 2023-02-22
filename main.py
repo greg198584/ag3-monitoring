@@ -7,6 +7,8 @@ from rich import box
 import schedule
 import argparse
 from functools import partial
+from rich.columns import Columns
+from rich.progress import Progress
 
 def generate_programme_table(data):
     # Tableau pour afficher les informations du programme
@@ -131,6 +133,65 @@ def generate_zone_data_table(program_data):
     table.add_row("Cellules", cellule_table)
     return table
 
+def display_program_data(program_data, table_title):
+    # Créer une console Rich
+    console = Console()
+
+    # Créer une table pour afficher les données du programme
+    table = Table(title=table_title)
+
+    # Ajouter les colonnes à la table
+    table.add_column("Cellules", justify="left", style="cyan")
+    table.add_column("Statut", style="cyan")
+    table.add_column("Nom", style="cyan")
+    table.add_column("Level", style="cyan")
+
+    # Récupérer les données des cellules pour le programme
+    cell_data = program_data['cellules']
+
+    max_valeur = program_data['level']*100
+    # Afficher les données de chaque cellule
+    for cell_id, cell_info in cell_data.items():
+        # Créer une barre de progression pour le niveau de la cellule
+        with Progress(transient=True) as progress:
+            task_id = progress.add_task(f"Cellule {cell_id}", total=max_valeur)
+            for i in range(cell_info['valeur']):
+                progress.advance(task_id)
+        # Déterminer la couleur de la barre en fonction du niveau de la cellule
+        calcule = max_valeur / 2
+        # print("max_valeur = ", int(max_valeur))
+        # print("calcule_diviser = ", int(calcule))
+        # print("valeur_cell = ", cell_info['valeur'])
+        if cell_info['valeur'] <= int(max_valeur / 2):
+            style = "red"
+        elif cell_info['valeur'] >= int(max_valeur / 2):
+            style = "yellow"
+        else:
+            style = "green"
+        # Créer une colonne pour afficher la barre de progression
+        progress_column = Columns([f"[{style}]Cellule {cell_id}[/{style}]", progress], expand=True)
+        # Ajouter une ligne à la table pour la cellule
+        status_str = "[red]Détruite[/red]" if cell_info['status'] == False else "[green]Active[/green]"
+        table.add_row(progress_column, status_str, "", "")
+
+    # Afficher la table dans la console Rich
+    console.print(table)
+
+
+def display_lock_program(json_data):
+    # Récupérer les données des programmes
+    prog_data = json_data['programme']
+    lock_prog_data = json_data['lock_programme']
+
+    # Afficher les données du programme principal
+    table_title = f"[bold blue]{prog_data['name']}[/bold blue] (Level {prog_data['level']})"
+    display_program_data(prog_data, table_title)
+
+    # Afficher les données des programmes verrouillés
+    for lock_prog_id, lock_prog_info in lock_prog_data.items():
+        table_title = f"[bold green]{lock_prog_info['name']}[/bold green] (Level {lock_prog_info['level']})"
+        display_program_data(lock_prog_info, table_title)
+
 def refresh_grids(host_a, host_b, current_host, id, secret_id):
     console = Console(style="default")
     # Faire une requête HTTP pour obtenir l'objet JSON pour la première grille
@@ -177,6 +238,7 @@ def refresh_grids(host_a, host_b, current_host, id, secret_id):
     programme_data = response.json()
     programme_tab = generate_tables(programme_data)
     console.print(programme_tab)
+    display_lock_program(programme_data)
 
 def refresh_grids_wrapper(host_a, host_b, current_host, id, secret_id):
     return partial(refresh_grids, host_a, host_b, current_host, id, secret_id)

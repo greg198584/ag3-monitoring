@@ -108,6 +108,8 @@ def generate_zone_data_table(program_data):
     table = Table(show_header=True, header_style="bold magenta")
     table.box = box.SIMPLE_HEAVY
     table.add_column("Zone Data", justify="center")
+    if "id" not in program_data:
+        return table
     table.add_row("ID", str(program_data["id"]))
     table.add_row("Actif", "[green]YES[/green]" if program_data["actif"] else "[red]NO[/red]")
     cellule_table = Table(show_header=True, header_style="bold magenta")
@@ -293,7 +295,7 @@ def main():
     while True:
         schedule.run_pending()
         # Attendre 5 secondes avant de mettre à jour les données
-        # time.sleep(5)
+        time.sleep(5)
 
 if __name__ == '__main__':
     main()

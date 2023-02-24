@@ -114,7 +114,7 @@ def generate_zone_data_table(program_data):
     cellule_table.box = box.SIMPLE_HEAVY
     cellule_table.add_column("Cellule ID")
     cellule_table.add_column("Valeur")
-    cellule_table.add_column("Énergie")
+    cellule_table.add_column("Data")
     cellule_table.add_column("Status")
     cellule_table.add_column("Destroy")
     cellule_table.add_column("Rebuild")
@@ -123,7 +123,7 @@ def generate_zone_data_table(program_data):
     for cellule in program_data["cellule"]:
         cellule_table.add_row(str(cellule["id"]),
                               str(cellule["valeur"]),
-                              str(cellule["energy"]),
+                              str(cellule["data_count"]),
                               "[green]YES[/green]" if cellule["status"] else "[red]NO[/red]",
                               "[green]YES[/green]" if cellule["destroy"] else "[red]NO[/red]",
                               "[green]YES[/green]" if cellule["rebuild"] else "[red]NO[/red]",
@@ -293,7 +293,7 @@ def main():
     while True:
         schedule.run_pending()
         # Attendre 5 secondes avant de mettre à jour les données
-        time.sleep(5)
+        # time.sleep(5)
 
 if __name__ == '__main__':
     main()

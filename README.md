@@ -21,3 +21,7 @@ host: 195.154.84.18:20180
 host: 195.154.84.18:20190
 current host: 195.154.84.18:20180
 ```
+
+## Screen exemple
+
+![alt text](img/screen_demo.png)

@@ -8,6 +8,8 @@ import argparse
 from functools import partial
 from rich.columns import Columns
 from rich.progress import Progress
+import json
+
 
 def generate_programme_table(data):
     # Tableau pour afficher les informations du programme
@@ -244,51 +246,42 @@ def refresh_grids(host_a, host_b, current_host, id, secret_id):
 def refresh_grids_wrapper(host_a, host_b, current_host, id, secret_id):
     return partial(refresh_grids, host_a, host_b, current_host, id, secret_id)
 
-def main():
-    parser = argparse.ArgumentParser(description='AG-3 monitoring')
-    parser.add_argument('--id', type=str, help='ID du programme')
-    parser.add_argument('--secret-id', type=str, help='Secret ID')
-    parser.add_argument('--host_a', type=str, help='Host')
-    parser.add_argument('--host_b', type=str, help='Port')
-    parser.add_argument('--current_host', type=str, help='Current host')
-
-    args = parser.parse_args()
-
-    if args.id:
-        print(f"L'ID du programme est {args.id}")
+def main(params):
+    if "id" in params:
+        print(f"L'ID du programme est {params['id']}")
     else:
         print("L'ID du programme n'a pas été renseigné")
         return
 
-    if args.secret_id:
-        print(f"Le Secret ID est {args.secret_id}")
+    if "secret-id" in params:
+        print(f"Le Secret ID est {params['secret-id']}")
     else:
         print("Le Secret ID n'a pas été renseigné")
         return
 
-    if args.host_a:
-        print(f"host: {args.host_a}")
+    if "host_a" in params:
+        print(f"host: {params['host_a']}")
     else:
         print("host a non renseigné")
         return
 
-    if args.host_b:
-        print(f"host: {args.host_b}")
+    if "host_b" in params:
+        print(f"host: {params['host_b']}")
     else:
         print("host b non renseigné")
         return
 
-    if args.current_host:
-        print(f"current host: {args.current_host}")
+    if "current_host" in params:
+        print(f"current host: {params['current_host']}")
     else:
         print("current host non renseigné")
         return
 
-    id = args.id
-    secret_id = args.secret_id
-    host_a = args.host_a
-    host_b = args.host_b
-    current_host = args.current_host
+    id = params["id"]
+    secret_id = params["secret-id"]
+    host_a = params["host_a"]
+    host_b = params["host_b"]
+    current_host = params["current_host"]
     refresh_grids_partial = refresh_grids_wrapper(host_a, host_b, current_host, id, secret_id)
     schedule.every(5).seconds.do(refresh_grids_partial)
 
@@ -297,5 +290,13 @@ def main():
         # Attendre 5 secondes avant de mettre à jour les données
         time.sleep(5)
 
+
 if __name__ == '__main__':
-    main()
+    parser = argparse.ArgumentParser(description='AG-3 monitoring')
+    parser.add_argument('json_file', type=str, help='Chemin vers le fichier JSON contenant les paramètres')
+    args = parser.parse_args()
+
+    with open(args.json_file) as f:
+        params = json.load(f)
+
+    main(params)

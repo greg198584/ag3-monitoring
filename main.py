@@ -208,6 +208,7 @@ def generate_info_grid_table(data):
     info_grid_table.box = box.SIMPLE_HEAVY
     info_grid_table.add_column("Grid infos")
     info_grid_table.add_row("Grille", data["ag-3-team"])
+    info_grid_table.add_row("AG-3 Version", data["version"])
     info_grid_table.add_row("Cycle", str(data["cycle"]))
     info_grid_table.add_row("Iteration", str(data["iteration"]))
     info_grid_table.add_row("Progs", str(data["nbr_programmes"]))

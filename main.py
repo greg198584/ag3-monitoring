@@ -26,6 +26,13 @@ def generate_programme_table(data):
     programme_table.add_row("Statut", "[green]YES[/green]") if data["status"] else "[red]NO[/red]"
     programme_table.add_row("Exploration", "[green]YES[/green]" if data["exploration"] else "[red]NO[/red]")
 
+    flagCapture = False
+    for cellule in data["cellules"].values():
+        for dataCellule in cellule["datas"].values():
+            if dataCellule["is_flag"]:
+                flagCapture = True
+
+    programme_table.add_row("Flag-found", "[green]YES[/green]" if flagCapture else "[red]NO[/red]")
     return programme_table
 
 def generate_cellules_table(data):

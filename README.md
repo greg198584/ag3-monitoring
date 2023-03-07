@@ -35,6 +35,15 @@ current host: 195.154.84.18:20180
 
 ```
 
+### Option watcher
+
+- sans connexion de programme, seulement affichages des grille A et B + infos
+
+```
+> $ python3 main.py json_file -w
+```
+
+
 ## Screen exemple
 
 ![alt text](img/screen_demo.png)

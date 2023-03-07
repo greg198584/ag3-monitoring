@@ -45,7 +45,7 @@ current host: 195.154.84.18:20180
 
 ## New Screen exemple
 
-![alt text](img/screen_demo_0323.png)
+![alt text](img/screen_new_0323.png)
 
 
 

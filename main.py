@@ -10,7 +10,7 @@ from rich.columns import Columns
 from rich.progress import Progress
 import json
 
-
+watchOnly = False
 def generate_programme_table(data):
     # Tableau pour afficher les informations du programme
     programme_table = Table(show_header=True, header_style="bold magenta")
@@ -195,6 +195,20 @@ def display_lock_program(json_data):
         table_title = f"[bold green]{lock_prog_info['name']}[/bold green] (Level {lock_prog_info['level']})"
         display_program_data(lock_prog_info, table_title)
 
+def generate_info_grid_table(data):
+    # Tableau pour afficher les informations grille
+    info_grid_table = Table(show_header=True, header_style="bold magenta")
+    info_grid_table.box = box.SIMPLE_HEAVY
+    info_grid_table.add_column("Grid infos")
+    info_grid_table.add_row("Grille", data["ag-3-team"])
+    info_grid_table.add_row("Cycle", str(data["cycle"]))
+    info_grid_table.add_row("Iteration", str(data["iteration"]))
+    info_grid_table.add_row("Progs", str(data["nbr_programmes"]))
+    info_grid_table.add_row("Zone transfert", f'Secteur ID: {data["zone_transfert"]["secteur_id"]}, Zone ID: {data["zone_transfert"]["zone_id"]}')
+    info_grid_table.add_row("Statut", "[green]YES[/green]") if data["status"] else "[red]NO[/red]"
+    info_grid_table.add_row("Flag capture", "[green]YES[/green]" if data["flag_capture"] else "[red]NO[/red]")
+
+    return info_grid_table
 def refresh_grids(host_a, host_b, current_host, id, secret_id):
     console = Console(style="default")
     # Faire une requête HTTP pour obtenir l'objet JSON pour la première grille
@@ -217,31 +231,38 @@ def refresh_grids(host_a, host_b, current_host, id, secret_id):
 
     console.clear()  # Effacer l'écran
 
-    # Scan zone
-    scan_url = 'http://:host/v1/programme/scan/:id/:secret_id'
-    scan_url = scan_url.replace(':host', current_host) if current_host else scan_url
-    scan_url = scan_url.replace(':id', id) if id else scan_url
-    scan_url = scan_url.replace(':secret_id', secret_id) if secret_id else scan_url
-    response = requests.get(scan_url)
-    program_data = response.json()
+    # Générer données des grilles A et B
+    info_grille_a = generate_info_grid_table(data1)
+    info_grille_b = generate_info_grid_table(data2)
 
-    # Générer la table des données du programme
-    zone_data = generate_zone_data_table(program_data)
+    # Afficher les deux grilles côte à côte + info
+    console.print(Columns([g1, info_grille_a, g2, info_grille_b]))
 
-    # Afficher les deux grilles côte à côte + zone
-    console.print(Columns([g1, g2, zone_data]))
+    if watchOnly == False:
+        # Scan zone
+        scan_url = 'http://:host/v1/programme/scan/:id/:secret_id'
+        scan_url = scan_url.replace(':host', current_host) if current_host else scan_url
+        scan_url = scan_url.replace(':id', id) if id else scan_url
+        scan_url = scan_url.replace(':secret_id', secret_id) if secret_id else scan_url
+        response = requests.get(scan_url)
+        program_data = response.json()
 
-    # Faire une requête HTTP pour obtenir l'objet JSON
-    prog_url = 'http://:host/v1/programme/infos/:id/:secret_id'
-    prog_url = prog_url.replace(':host', current_host) if current_host else prog_url
-    prog_url = prog_url.replace(':id', id) if id else prog_url
-    prog_url = prog_url.replace(':secret_id', secret_id) if secret_id else prog_url
+        # Générer la table des données du scan zone current
+        zone_data = generate_zone_data_table(program_data)
 
-    response = requests.get(prog_url)
-    programme_data = response.json()
-    programme_tab = generate_tables(programme_data)
-    console.print(programme_tab)
-    display_lock_program(programme_data)
+        console.print(zone_data)
+
+        # Faire une requête HTTP pour obtenir l'objet JSON
+        prog_url = 'http://:host/v1/programme/infos/:id/:secret_id'
+        prog_url = prog_url.replace(':host', current_host) if current_host else prog_url
+        prog_url = prog_url.replace(':id', id) if id else prog_url
+        prog_url = prog_url.replace(':secret_id', secret_id) if secret_id else prog_url
+
+        response = requests.get(prog_url)
+        programme_data = response.json()
+        programme_tab = generate_tables(programme_data)
+        console.print(programme_tab)
+        display_lock_program(programme_data)
 
 def refresh_grids_wrapper(host_a, host_b, current_host, id, secret_id):
     return partial(refresh_grids, host_a, host_b, current_host, id, secret_id)
@@ -294,9 +315,12 @@ def main(params):
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='AG-3 monitoring')
     parser.add_argument('json_file', type=str, help='Chemin vers le fichier JSON contenant les paramètres')
+    parser.add_argument('-w', action='store_true', help='surveiller grille sans programme -w')
     args = parser.parse_args()
 
     with open(args.json_file) as f:
         params = json.load(f)
 
+    if args.w:
+        watchOnly = True
     main(params)

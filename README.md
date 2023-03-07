@@ -43,7 +43,12 @@ current host: 195.154.84.18:20180
 > $ python3 main.py json_file -w
 ```
 
+## New Screen exemple
 
-## Screen exemple
+![alt text](img/screen_demo_0323.png)
+
+
+
+## Screen OLD and battle programme exemple
 
 ![alt text](img/screen_demo.png)

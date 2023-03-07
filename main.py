@@ -27,10 +27,12 @@ def generate_programme_table(data):
     programme_table.add_row("Exploration", "[green]YES[/green]" if data["exploration"] else "[red]NO[/red]")
 
     flagCapture = False
-    for cellule in data["cellules"].values():
-        for dataCellule in cellule["datas"].values():
-            if dataCellule["is_flag"]:
-                flagCapture = True
+    if data is not None and "cellules" in data:
+        for cellule in data["cellules"].values():
+            if cellule is not None and isinstance(cellule.get("datas"), dict):
+                for dataCellule in cellule["datas"].values():
+                    if dataCellule["is_flag"]:
+                        flagCapture = True
 
     programme_table.add_row("Flag-found", "[green]YES[/green]" if flagCapture else "[red]NO[/red]")
     return programme_table
@@ -247,20 +249,7 @@ def refresh_grids(host_a, host_b, current_host, id, secret_id):
     console.print(Columns([g1, info_grille_a, g2, info_grille_b]))
 
     if watchOnly == False:
-        # Scan zone
-        scan_url = 'http://:host/v1/programme/scan/:id/:secret_id'
-        scan_url = scan_url.replace(':host', current_host) if current_host else scan_url
-        scan_url = scan_url.replace(':id', id) if id else scan_url
-        scan_url = scan_url.replace(':secret_id', secret_id) if secret_id else scan_url
-        response = requests.get(scan_url)
-        program_data = response.json()
-
-        # Générer la table des données du scan zone current
-        zone_data = generate_zone_data_table(program_data)
-
-        console.print(zone_data)
-
-        # Faire une requête HTTP pour obtenir l'objet JSON
+        # Faire une requête HTTP pour obtenir l'objet JSON infos programme
         prog_url = 'http://:host/v1/programme/infos/:id/:secret_id'
         prog_url = prog_url.replace(':host', current_host) if current_host else prog_url
         prog_url = prog_url.replace(':id', id) if id else prog_url
@@ -269,6 +258,22 @@ def refresh_grids(host_a, host_b, current_host, id, secret_id):
         response = requests.get(prog_url)
         programme_data = response.json()
         programme_tab = generate_tables(programme_data)
+
+        if programme_data["navigation"] == False:
+            # Scan zone
+            scan_url = 'http://:host/v1/programme/scan/:id/:secret_id'
+            scan_url = scan_url.replace(':host', current_host) if current_host else scan_url
+            scan_url = scan_url.replace(':id', id) if id else scan_url
+            scan_url = scan_url.replace(':secret_id', secret_id) if secret_id else scan_url
+            response = requests.get(scan_url)
+            program_data = response.json()
+
+            # Générer la table des données du scan zone current
+            zone_data = generate_zone_data_table(program_data)
+
+            console.print(zone_data)
+
+
         console.print(programme_tab)
         display_lock_program(programme_data)
 

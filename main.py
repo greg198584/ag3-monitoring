@@ -229,7 +229,12 @@ def refresh_grids(host_a, host_b, current_host, id, secret_id):
     status_a_url = 'http://:host/v1/grid'
     status_a_url = status_a_url.replace(':host', host_a) if host_a else status_a_url
     response1 = requests.get(status_a_url)
-    data1 = response1.json()
+    data1 = {}
+    try:
+        if response1.status_code == 200:
+            data1 = response1.json()
+    except json.JSONDecodeError:
+            print("erreur api response")
 
     # Générer la première grille
     g1 = generate_grid(data1)
@@ -238,8 +243,12 @@ def refresh_grids(host_a, host_b, current_host, id, secret_id):
     status_b_url = 'http://:host/v1/grid'
     status_b_url = status_b_url.replace(':host', host_b) if host_b else status_b_url
     response2 = requests.get(status_b_url)
-    data2 = response2.json()
-
+    data2 = {}
+    try:
+        if response2.status_code == 200:
+            data2 = response2.json()
+    except json.JSONDecodeError:
+        print("erreur api response")
     # Générer la deuxième grille
     g2 = generate_grid(data2)
 
@@ -264,8 +273,9 @@ def refresh_grids(host_a, host_b, current_host, id, secret_id):
         try:
             if response.status_code == 200:
                 programme_data = response.json()
-        except:
+        except json.JSONDecodeError:
             print("erreur api response")
+
         if "programme" in programme_data.keys():
             programme_tab = generate_tables(programme_data)
         else:

@@ -224,6 +224,7 @@ def generate_info_grid_table(data):
 
     return info_grid_table
 def refresh_grids(host_a, host_b, current_host, id, secret_id):
+    status_grille = False
     console = Console(style="default")
     # Faire une requête HTTP pour obtenir l'objet JSON pour la première grille
     status_a_url = 'http://:host/v1/grid'
@@ -233,11 +234,10 @@ def refresh_grids(host_a, host_b, current_host, id, secret_id):
     try:
         if response1.status_code == 200:
             data1 = response1.json()
+            status_grille = True
     except json.JSONDecodeError:
-            print("erreur api response")
-
-    # Générer la première grille
-    g1 = generate_grid(data1)
+        status_grille = False
+        print("erreur api response")
 
     # Faire une requête HTTP pour obtenir l'objet JSON pour la deuxième grille
     status_b_url = 'http://:host/v1/grid'
@@ -247,19 +247,25 @@ def refresh_grids(host_a, host_b, current_host, id, secret_id):
     try:
         if response2.status_code == 200:
             data2 = response2.json()
+            status_grille = True
     except json.JSONDecodeError:
+        status_grille = False
         print("erreur api response")
-    # Générer la deuxième grille
-    g2 = generate_grid(data2)
 
     console.clear()  # Effacer l'écran
 
-    # Générer données des grilles A et B
-    info_grille_a = generate_info_grid_table(data1)
-    info_grille_b = generate_info_grid_table(data2)
+    if status_grille:
+        # Générer la première grille
+        g1 = generate_grid(data1)
+        # Générer la deuxième grille
+        g2 = generate_grid(data2)
 
-    # Afficher les deux grilles côte à côte + info
-    console.print(Columns([g1, info_grille_a, g2, info_grille_b]))
+        # Générer données des grilles A et B
+        info_grille_a = generate_info_grid_table(data1)
+        info_grille_b = generate_info_grid_table(data2)
+
+        # Afficher les deux grilles côte à côte + info
+        console.print(Columns([g1, info_grille_a, g2, info_grille_b]))
 
     if watchOnly == False and data1["status"] and data2["status"]:
         # Faire une requête HTTP pour obtenir l'objet JSON infos programme

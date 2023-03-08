@@ -27,14 +27,18 @@ def generate_programme_table(data):
     programme_table.add_row("Exploration", "[green]YES[/green]" if data["exploration"] else "[red]NO[/red]")
 
     flagCapture = False
+    competence = 0
     if data is not None and "cellules" in data:
         for cellule in data["cellules"].values():
             if cellule is not None and isinstance(cellule.get("datas"), dict):
                 for dataCellule in cellule["datas"].values():
                     if dataCellule["is_flag"]:
                         flagCapture = True
+                    if dataCellule["competence"]:
+                        competence += 1
 
     programme_table.add_row("Flag-found", "[green]YES[/green]" if flagCapture else "[red]NO[/red]")
+    programme_table.add_row("Competences", "[cyan]" + str(competence) + "[/cyan]")
     return programme_table
 
 def generate_cellules_table(data):

@@ -248,7 +248,7 @@ def refresh_grids(host_a, host_b, current_host, id, secret_id):
     # Afficher les deux grilles côte à côte + info
     console.print(Columns([g1, info_grille_a, g2, info_grille_b]))
 
-    if watchOnly == False:
+    if watchOnly == False and data1["status"] and data2["status"]:
         # Faire une requête HTTP pour obtenir l'objet JSON infos programme
         prog_url = 'http://:host/v1/programme/infos/:id/:secret_id'
         prog_url = prog_url.replace(':host', current_host) if current_host else prog_url
@@ -257,9 +257,12 @@ def refresh_grids(host_a, host_b, current_host, id, secret_id):
 
         response = requests.get(prog_url)
         programme_data = response.json()
-        programme_tab = generate_tables(programme_data)
+        if "programme" in programme_data.keys():
+            programme_tab = generate_tables(programme_data)
+        else:
+            return
 
-        if programme_data["navigation"] == False:
+        if "programme" in programme_data.keys() and programme_data["navigation"] == False:
             # Scan zone
             scan_url = 'http://:host/v1/programme/scan/:id/:secret_id'
             scan_url = scan_url.replace(':host', current_host) if current_host else scan_url

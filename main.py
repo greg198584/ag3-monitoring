@@ -256,7 +256,12 @@ def refresh_grids(host_a, host_b, current_host, id, secret_id):
         prog_url = prog_url.replace(':secret_id', secret_id) if secret_id else prog_url
 
         response = requests.get(prog_url)
-        programme_data = response.json()
+        programme_data = {}
+        try:
+            if response.status_code == 200:
+                programme_data = response.json()
+        except:
+            print("erreur api response")
         if "programme" in programme_data.keys():
             programme_tab = generate_tables(programme_data)
         else:

@@ -223,7 +223,7 @@ def generate_info_grid_table(data):
     info_grid_table.add_row("Flag capture", "[green]YES[/green]" if data["flag_capture"] else "[red]NO[/red]")
 
     return info_grid_table
-def refresh_grids(host_a, host_b, current_host, id, secret_id):
+def refresh_grids(host_a, host_b, current_host, seconde_host, id, secret_id):
     status_grille = False
     console = Console(style="default")
     # Faire une requête HTTP pour obtenir l'objet JSON pour la première grille
@@ -268,7 +268,7 @@ def refresh_grids(host_a, host_b, current_host, id, secret_id):
         console.print(Columns([g1, info_grille_a, g2, info_grille_b]))
 
     if watchOnly == False and data1["status"] and data2["status"]:
-        # Faire une requête HTTP pour obtenir l'objet JSON infos programme
+        # Faire une requête HTTP pour obtenir l'objet JSON infos programme current host
         prog_url = 'http://:host/v1/programme/infos/:id/:secret_id'
         prog_url = prog_url.replace(':host', current_host) if current_host else prog_url
         prog_url = prog_url.replace(':id', id) if id else prog_url
@@ -287,6 +287,26 @@ def refresh_grids(host_a, host_b, current_host, id, secret_id):
         else:
             return
 
+        # Faire une requête HTTP pour obtenir l'objet JSON infos programme seconde host
+        s_prog_url = 'http://:host/v1/programme/infos/:id/:secret_id'
+        s_prog_url = s_prog_url.replace(':host', seconde_host) if seconde_host else s_prog_url
+        s_prog_url = s_prog_url.replace(':id', id) if id else s_prog_url
+        s_prog_url = s_prog_url.replace(':secret_id', secret_id) if secret_id else s_prog_url
+
+        s_response = requests.get(s_prog_url)
+        s_programme_data = {}
+        try:
+            if response.status_code == 200:
+                s_programme_data = s_response.json()
+        except json.JSONDecodeError:
+            print("erreur api response")
+
+        if "programme" in s_programme_data.keys():
+            s_programme_tab = generate_tables(s_programme_data)
+        else:
+            return
+
+        # infos zone si navigation ok
         if "programme" in programme_data.keys() and programme_data["navigation"] == False:
             # Scan zone
             scan_url = 'http://:host/v1/programme/scan/:id/:secret_id'
@@ -308,9 +328,11 @@ def refresh_grids(host_a, host_b, current_host, id, secret_id):
 
         console.print(programme_tab)
         display_lock_program(programme_data)
+        console.print(s_programme_tab)
+        display_lock_program(s_programme_data)
 
-def refresh_grids_wrapper(host_a, host_b, current_host, id, secret_id):
-    return partial(refresh_grids, host_a, host_b, current_host, id, secret_id)
+def refresh_grids_wrapper(host_a, host_b, current_host, seconde_host,  id, secret_id):
+    return partial(refresh_grids, host_a, host_b, current_host, seconde_host, id, secret_id)
 
 def main(params):
     if "id" in params:
@@ -343,12 +365,19 @@ def main(params):
         print("current host non renseigné")
         return
 
+    if "seconde_host" in params:
+        print(f"seconde host: {params['seconde_host']}")
+    else:
+        print("seconde host non renseigné")
+        return
+
     id = params["id"]
     secret_id = params["secret-id"]
     host_a = params["host_a"]
     host_b = params["host_b"]
     current_host = params["current_host"]
-    refresh_grids_partial = refresh_grids_wrapper(host_a, host_b, current_host, id, secret_id)
+    seconde_host = params["seconde_host"]
+    refresh_grids_partial = refresh_grids_wrapper(host_a, host_b, current_host, seconde_host, id, secret_id)
     schedule.every(5).seconds.do(refresh_grids_partial)
 
     while True:

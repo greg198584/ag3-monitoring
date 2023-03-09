@@ -254,7 +254,7 @@ def refresh_grids(host_a, host_b, current_host, id, secret_id):
 
     console.clear()  # Effacer l'écran
 
-    if status_grille:
+    if status_grille and "status" in data1.keys() and "status" in data2.keys():
         # Générer la première grille
         g1 = generate_grid(data1)
         # Générer la deuxième grille

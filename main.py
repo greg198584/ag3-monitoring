@@ -294,10 +294,14 @@ def refresh_grids(host_a, host_b, current_host, id, secret_id):
             scan_url = scan_url.replace(':id', id) if id else scan_url
             scan_url = scan_url.replace(':secret_id', secret_id) if secret_id else scan_url
             response = requests.get(scan_url)
-            program_data = response.json()
-
-            # Générer la table des données du scan zone current
-            zone_data = generate_zone_data_table(program_data)
+            zone_data = {}
+            try:
+                if response.status_code == 200:
+                    zone_data = response.json()
+                    # Générer la table des données du scan zone current
+                    zone_data = generate_zone_data_table(zone_data)
+            except json.JSONDecodeError:
+                print("erreur api response")
 
             console.print(zone_data)
 

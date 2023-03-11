@@ -267,69 +267,69 @@ def refresh_grids(host_a, host_b, current_host, seconde_host, id, secret_id):
         # Afficher les deux grilles côte à côte + info
         console.print(Columns([g1, info_grille_a, g2, info_grille_b]))
 
-    if watchOnly == False and data1["status"] and data2["status"]:
-        # Faire une requête HTTP pour obtenir l'objet JSON infos programme current host
-        prog_url = 'http://:host/v1/programme/infos/:id/:secret_id'
-        prog_url = prog_url.replace(':host', current_host) if current_host else prog_url
-        prog_url = prog_url.replace(':id', id) if id else prog_url
-        prog_url = prog_url.replace(':secret_id', secret_id) if secret_id else prog_url
+        if watchOnly == False and data1["status"] and data2["status"]:
+            # Faire une requête HTTP pour obtenir l'objet JSON infos programme current host
+            prog_url = 'http://:host/v1/programme/infos/:id/:secret_id'
+            prog_url = prog_url.replace(':host', current_host) if current_host else prog_url
+            prog_url = prog_url.replace(':id', id) if id else prog_url
+            prog_url = prog_url.replace(':secret_id', secret_id) if secret_id else prog_url
 
-        response = requests.get(prog_url)
-        programme_data = {}
-        try:
-            if response.status_code == 200:
-                programme_data = response.json()
-        except json.JSONDecodeError:
-            print("erreur api response")
-
-        if "programme" in programme_data.keys():
-            programme_tab = generate_tables(programme_data)
-        else:
-            return
-
-        # Faire une requête HTTP pour obtenir l'objet JSON infos programme seconde host
-        s_prog_url = 'http://:host/v1/programme/infos/:id/:secret_id'
-        s_prog_url = s_prog_url.replace(':host', seconde_host) if seconde_host else s_prog_url
-        s_prog_url = s_prog_url.replace(':id', id) if id else s_prog_url
-        s_prog_url = s_prog_url.replace(':secret_id', secret_id) if secret_id else s_prog_url
-
-        s_response = requests.get(s_prog_url)
-        s_programme_data = {}
-        try:
-            if response.status_code == 200:
-                s_programme_data = s_response.json()
-        except json.JSONDecodeError:
-            print("erreur api response")
-
-        if "programme" in s_programme_data.keys():
-            s_programme_tab = generate_tables(s_programme_data)
-        else:
-            return
-
-        # infos zone si navigation ok
-        if "programme" in programme_data.keys() and programme_data["navigation"] == False:
-            # Scan zone
-            scan_url = 'http://:host/v1/programme/scan/:id/:secret_id'
-            scan_url = scan_url.replace(':host', current_host) if current_host else scan_url
-            scan_url = scan_url.replace(':id', id) if id else scan_url
-            scan_url = scan_url.replace(':secret_id', secret_id) if secret_id else scan_url
-            response = requests.get(scan_url)
-            zone_data = {}
+            response = requests.get(prog_url)
+            programme_data = {}
             try:
                 if response.status_code == 200:
-                    zone_data = response.json()
-                    # Générer la table des données du scan zone current
-                    zone_data = generate_zone_data_table(zone_data)
+                    programme_data = response.json()
             except json.JSONDecodeError:
                 print("erreur api response")
 
-            console.print(zone_data)
+            if "programme" in programme_data.keys():
+                programme_tab = generate_tables(programme_data)
+            else:
+                return
+
+            # Faire une requête HTTP pour obtenir l'objet JSON infos programme seconde host
+            s_prog_url = 'http://:host/v1/programme/infos/:id/:secret_id'
+            s_prog_url = s_prog_url.replace(':host', seconde_host) if seconde_host else s_prog_url
+            s_prog_url = s_prog_url.replace(':id', id) if id else s_prog_url
+            s_prog_url = s_prog_url.replace(':secret_id', secret_id) if secret_id else s_prog_url
+
+            s_response = requests.get(s_prog_url)
+            s_programme_data = {}
+            try:
+                if response.status_code == 200:
+                    s_programme_data = s_response.json()
+            except json.JSONDecodeError:
+                print("erreur api response")
+
+            if "programme" in s_programme_data.keys():
+                s_programme_tab = generate_tables(s_programme_data)
+            else:
+                return
+
+            # infos zone si navigation ok
+            if "programme" in programme_data.keys() and programme_data["navigation"] == False:
+                # Scan zone
+                scan_url = 'http://:host/v1/programme/scan/:id/:secret_id'
+                scan_url = scan_url.replace(':host', current_host) if current_host else scan_url
+                scan_url = scan_url.replace(':id', id) if id else scan_url
+                scan_url = scan_url.replace(':secret_id', secret_id) if secret_id else scan_url
+                response = requests.get(scan_url)
+                zone_data = {}
+                try:
+                    if response.status_code == 200:
+                        zone_data = response.json()
+                        # Générer la table des données du scan zone current
+                        zone_data = generate_zone_data_table(zone_data)
+                except json.JSONDecodeError:
+                    print("erreur api response")
+
+                console.print(zone_data)
 
 
-        console.print(programme_tab)
-        display_lock_program(programme_data)
-        console.print(s_programme_tab)
-        display_lock_program(s_programme_data)
+            console.print(programme_tab)
+            display_lock_program(programme_data)
+            console.print(s_programme_tab)
+            display_lock_program(s_programme_data)
 
 def refresh_grids_wrapper(host_a, host_b, current_host, seconde_host,  id, secret_id):
     return partial(refresh_grids, host_a, host_b, current_host, seconde_host, id, secret_id)
@@ -383,7 +383,7 @@ def main(params):
     while True:
         schedule.run_pending()
         # Attendre 5 secondes avant de mettre à jour les données
-        time.sleep(5)
+        # time.sleep(5)
 
 
 if __name__ == '__main__':
